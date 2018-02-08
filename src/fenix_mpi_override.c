@@ -59,6 +59,13 @@
 #include <assert.h>
 #include "fenix_ext.h"
 
+#warning "For OpenMPI 2.0.2, const void * is used!"
+#ifdef OPEN_MPI
+#define MPI_SEND_BUFF_TYPE const void *
+#else
+#define MPI_SEND_BUFF_TYPE const void *
+#endif
+
 static inline 
 MPI_Comm __fenix_replace_comm(MPI_Comm comm)
 {
@@ -127,8 +134,7 @@ int MPI_Comm_split(MPI_Comm comm, int color, int key, MPI_Comm *newcomm)
     return ret;
 }
 
-int MPI_Alltoallv(void *sendbuf, int *sendcounts, int *sdispls, MPI_Datatype sendtype, 
-                  void *recvbuf, int *recvcounts, int *rdispls, MPI_Datatype recvtype,
+int MPI_Alltoallv(MPI_SEND_BUFF_TYPE sendbuf, const int *sendcounts, const int *sdispls, MPI_Datatype sendtype, void *recvbuf, const int *recvcounts, const int *rdispls, MPI_Datatype recvtype,
                   MPI_Comm comm)
 {
     int ret;
@@ -139,7 +145,7 @@ int MPI_Alltoallv(void *sendbuf, int *sendcounts, int *sdispls, MPI_Datatype sen
     return ret;
 }
 
-int MPI_Allgather(void *sendbuf, int sendcount, MPI_Datatype sendtype,
+int MPI_Allgather(MPI_SEND_BUFF_TYPE sendbuf, int sendcount, MPI_Datatype sendtype,
                   void *recvbuf, int recvcount, MPI_Datatype recvtype,
                   MPI_Comm comm)
 {
@@ -157,14 +163,6 @@ int MPI_Comm_rank(MPI_Comm comm, int *rank)
     __fenix_test_MPI_inline(ret, "MPI_Comm_rank");
     return ret;
 }
-
-
-#warning "For OpenMPI 2.0.2, const void * is used!"
-#ifdef OPEN_MPI
-#define MPI_SEND_BUFF_TYPE void *
-#else
-#define MPI_SEND_BUFF_TYPE const void *
-#endif
 
 int MPI_Allreduce(MPI_SEND_BUFF_TYPE sendbuf, void *recvbuf, int count, 
                   MPI_Datatype type, MPI_Op op, MPI_Comm comm)
